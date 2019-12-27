@@ -1,8 +1,12 @@
-import { version } from './package.json';
+import {
+    version
+} from './package.json';
 import CQWebsocket from 'cq-websocket';
 import config from './modules/config';
 import saucenao from './modules/saucenao';
-import { snDB } from './modules/saucenao';
+import {
+    snDB
+} from './modules/saucenao';
 import whatanime from './modules/whatanime';
 import ascii2d from './modules/ascii2d';
 import CQ from './modules/CQcode';
@@ -14,8 +18,12 @@ import ocr from './modules/plugin/ocr';
 import Akhr from './modules/plugin/akhr';
 import _ from 'lodash';
 import minimist from 'minimist';
-import { rmdInit, rmdHandler } from './modules/plugin/reminder';
+import {
+    rmdInit,
+    rmdHandler
+} from './modules/plugin/reminder';
 import broadcast from './modules/broadcast';
+import doBite from './modules/plugin/bite';
 
 //常量
 const setting = config.picfinder;
@@ -28,11 +36,11 @@ const signReg = new RegExp(setting.regs.sign);
 let sqlEnable = false;
 if (config.mysql.enable)
     PFSql.sqlInitialize()
-        .then(() => (sqlEnable = true))
-        .catch(e => {
-            console.error(`${getTime()} [error] SQL`);
-            console.error(e);
-        });
+    .then(() => (sqlEnable = true))
+    .catch(e => {
+        console.error(`${getTime()} [error] SQL`);
+        console.error(e);
+    });
 if (setting.akhr.enable) Akhr.init();
 if (setting.reminder.enable) rmdInit(replyMsg);
 
@@ -112,7 +120,10 @@ bot.on('message.private', (e, context) => {
     if (args.broadcast) broadcast(bot, parseArgs(context.message, false, 'broadcast'));
 
     //Ban
-    const { 'ban-u': bu, 'ban-g': bg } = args;
+    const {
+        'ban-u': bu,
+        'ban-g': bg
+    } = args;
     if (bu && typeof bu == 'number') {
         Logger.ban('u', bu);
         replyMsg(context, `已封禁用户${bu}`);
@@ -251,6 +262,8 @@ function privateAndAtMsg(e, context) {
             logger.smSetDB(0, context.user_id, db);
             return `已临时切换至[${context.message}]搜图模式√`;
         } else return setting.replys.default;
+    } else if (doBite(context,replyMsg,bot)) {//咬人
+        return;
     } else {
         //其他指令
         return setting.replys.default;
@@ -272,7 +285,10 @@ function groupMsg(e, context) {
     if (commonHandle(e, context)) return;
 
     //进入或退出搜图模式
-    const { group_id, user_id } = context;
+    const {
+        group_id,
+        user_id
+    } = context;
 
     if (searchModeOnReg.exec(context.message)) {
         //进入搜图
@@ -318,20 +334,24 @@ function groupMsg(e, context) {
             e.stopPropagation();
             searchImg(context, smStatus);
         }
-    } else if (setting.repeat.enable) {
-        //复读（
-        //随机复读，rptLog得到当前复读次数
-        if (logger.rptLog(group_id, user_id, context.message) >= setting.repeat.times && getRand() <= setting.repeat.probability) {
-            logger.rptDone(group_id);
-            //延迟2s后复读
-            setTimeout(() => {
-                replyMsg(context, context.message);
-            }, 2000);
-        } else if (getRand() <= setting.repeat.commonProb) {
-            //平时发言下的随机复读
-            setTimeout(() => {
-                replyMsg(context, context.message);
-            }, 2000);
+    } else {
+        //咬人
+        doBite(context,replyMsg,bot)
+        if (setting.repeat.enable) {
+            //复读（
+            //随机复读，rptLog得到当前复读次数
+            if (logger.rptLog(group_id, user_id, context.message) >= setting.repeat.times && getRand() <= setting.repeat.probability) {
+                logger.rptDone(group_id);
+                //延迟2s后复读
+                setTimeout(() => {
+                    replyMsg(context, context.message);
+                }, 2000);
+            } else if (getRand() <= setting.repeat.commonProb) {
+                //平时发言下的随机复读
+                setTimeout(() => {
+                    replyMsg(context, context.message);
+                }, 2000);
+            }
         }
     }
 }
@@ -424,7 +444,11 @@ async function searchImg(context, customDB = -1) {
 
                 //ascii2d
                 if (useAscii2d) {
-                    const { color, bovw, asErr } = await ascii2d(img.url).catch(asErr => ({
+                    const {
+                        color,
+                        bovw,
+                        asErr
+                    } = await ascii2d(img.url).catch(asErr => ({
                         asErr,
                     }));
                     if (asErr) {
@@ -580,10 +604,9 @@ function getTime() {
 function parseArgs(str, enableArray = false, _key = null) {
     const m = minimist(
         str
-            .replace(/(--\w+)(?:\s*)(\[CQ:)/g, '$1 $2')
-            .replace(/(\[CQ:[^\]]+\])(?:\s*)(--\w+)/g, '$1 $2')
-            .split(' '),
-        {
+        .replace(/(--\w+)(?:\s*)(\[CQ:)/g, '$1 $2')
+        .replace(/(\[CQ:[^\]]+\])(?:\s*)(--\w+)/g, '$1 $2')
+        .split(' '), {
             boolean: true,
         }
     );
