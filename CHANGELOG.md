@@ -1,5 +1,78 @@
 # 更新日志
 
+## 2020
+
+### 4-24 v2.11.14
+
+- 更改公开招募计算器触发词，不再需要`--akhr`，改为包含`akhr`或`公招`一词即可
+
+### 4-11 v2.11.13
+
+- 修复 danbooru 获取原图来源问题
+
+### 3-18 v2.11.12
+
+- 修复 whatanime 错误 ([#54](../../issues/54))‘
+- 改进错误输出
+
+### 3-18 v2.11.11
+
+- 修复反和谐生成图片过大问题 ([#53](../../issues/53))
+
+### 3-17 v2.11.10
+
+- 修复定时提醒功能判断分钟级间隔有误的问题
+
+### 3-14 v2.11.9
+
+- 更换 akhr 数据地址 ([#49](../../issues/49))
+- 增加 whatanime 的 token 设置
+- 配置项变更
+  - A `whatanimeToken`
+
+### 3-9 v2.11.8
+
+- 增加 setu 的 apikey 设置
+- 配置项变更
+  - A `picfinder.setu.apikey`
+
+### 2-21 v2.11.7
+
+- 修复通用处理完成后未停止事件传播的问题 ([#36](../../issues/36))
+
+### 2-18 v2.11.6
+
+- WhatAnime 使用官方提供的 API
+
+### 2-03 v2.11.5
+
+- 增加 SauceNao 低相似度值自定义配置
+- 增加“SauceNao 结果相似度过低时结果缩略图的替代文字”的配置
+- 配置项变更
+  - A `picfinder.saucenaoLowAcc`
+  - A `picfinder.replys.lowAccImgPlaceholder`
+
+### 2-01 v2.11.4
+
+- 增加“SauceNao 结果相似度过低时隐藏结果缩略图”的配置
+- 配置项变更
+  - A `picfinder.saucenaoHideImgWhenLowAcc`
+
+### 1-29 v2.11.3
+
+- 增加对`http://www.pixiv.net/(artworks|users)/[0-9]+`链接的短缩
+
+### 1-21 v2.11.2
+
+- 增加配置项用于控制是否在 saucenao 结果低相似度或配额耗尽时使用 ascii2d
+- 配置项变更
+  - A `picfinder.useAscii2dWhenQuotaExcess`
+  - A `picfinder.useAscii2dWhenLowAcc`
+
+### 1-15 v2.11.1
+
+- 因酷Q不支持本地发送大于 4M 的图片，因此开启反和谐后如果没有开启 size1200 并且原图大小超过 3M，将会自动使用 size1200 ([#40](../../issues/40))
+
 ## 2019
 
 ### 12-18 v2.11.0

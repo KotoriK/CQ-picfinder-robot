@@ -5,6 +5,8 @@ import CQ from './CQcode';
 import config from './config';
 import shorten from './urlShorten/is.gd';
 import { parse } from 'url';
+import pixivShorten from './urlShorten/pixiv';
+import logError from './logError';
 
 const hosts = config.saucenaoHost;
 let hostsI = 0;
@@ -22,6 +24,8 @@ const exts = {
     p: 'png',
     g: 'gif',
 };
+
+const saucenaoApiKeyAddition = config.saucenaoApiKey ? { api_key: config.saucenaoApiKey } : {};
 
 /**
  * saucenao搜索
@@ -91,10 +95,11 @@ async function doSearch(imgURL, db, debug = false) {
                 if (long_remaining < 20) warnMsg += CQ.escape(`saucenao[${hostIndex}]：注意，24h内搜图次数仅剩${long_remaining}次\n`);
                 else if (short_remaining < 5) warnMsg += CQ.escape(`saucenao[${hostIndex}]：注意，30s内搜图次数仅剩${short_remaining}次\n`);
                 //相似度
-                if (similarity < 60) {
+                if (similarity < config.picfinder.saucenaoLowAcc) {
                     lowAcc = true;
                     warnMsg += CQ.escape(`相似度[${similarity}%]过低，如果这不是你要找的图，那么可能：确实找不到此图/图为原图的局部图/图清晰度太低/搜索引擎尚未同步新图\n`);
-                    if (db == snDB.all || db == snDB.pixiv) warnMsg += '自动使用 ascii2d 进行搜索\n';
+                    if (config.picfinder.useAscii2dWhenLowAcc && (db == snDB.all || db == snDB.pixiv)) warnMsg += '自动使用 ascii2d 进行搜索\n';
+                    if (config.picfinder.saucenaoHideImgWhenLowAcc) thumbnail = null;
                 }
 
                 //回复的消息
@@ -112,8 +117,8 @@ async function doSearch(imgURL, db, debug = false) {
                 if (bookName) {
                     bookName = bookName.replace('(English)', '');
                     const book = await nhentai(bookName).catch(e => {
-                        console.error(`${new Date().toLocaleString()} [error] nhentai`);
-                        console.error(e);
+                        logError(`${new Date().toLocaleString()} [error] nhentai`);
+                        logError(e);
                         return false;
                     });
                     //有本子搜索结果的话
@@ -144,23 +149,23 @@ async function doSearch(imgURL, db, debug = false) {
                         break;
 
                     default:
-                        console.error(data);
+                        logError(data);
                         msg = `saucenao[${hostIndex}] ${data.header.message}`;
                         break;
                 }
             } else {
-                console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
-                console.error(data);
+                logError(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
+                logError(data);
             }
         })
         .catch(e => {
-            console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
+            logError(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
             if (e.response) {
                 if (e.response.status == 429) {
                     msg = `saucenao[${hostIndex}] 搜索次数已达单位时间上限，请稍候再试`;
                     excess = true;
-                } else console.error(e.response.data);
-            } else console.error(e);
+                } else logError(e.response.data);
+            } else logError(e);
         });
 
     if (config.picfinder.debug) console.log(`${new Date().toLocaleString()} [saucenao][${hostIndex}]\n${msg}`);
@@ -172,18 +177,6 @@ async function doSearch(imgURL, db, debug = false) {
         lowAcc,
         excess,
     };
-}
-
-/**
- * pixiv 短链接
- *
- * @param {string} url
- * @returns
- */
-function pixivShorten(url) {
-    const pidSearch = /pixiv.+illust_id=([0-9]+)/.exec(url);
-    if (pidSearch) return 'https://pixiv.net/i/' + pidSearch[1];
-    return url;
 }
 
 /**
@@ -203,7 +196,7 @@ async function confuseURL(url) {
 
 async function getShareText({ url, title, thumbnail, author_url, source }) {
     let text = `${title}
-${CQ.img(thumbnail)}
+${thumbnail ? CQ.img(thumbnail) : config.picfinder.replys.lowAccImgPlaceholder}
 ${await confuseURL(url)}`;
     if (author_url) text += `\nAuthor: ${await confuseURL(author_url)}`;
     if (source) text += `\nSource: ${await confuseURL(source)}`;
@@ -223,6 +216,7 @@ function getSearchResult(host, imgURL, db = 999) {
     else if (!/^https?:\/\//.test(host)) host = `http://${host}`;
     return get(`${host}/search.php`, {
         params: {
+            ...saucenaoApiKeyAddition,
             db: db,
             output_type: 2,
             numres: 3,

@@ -237,7 +237,10 @@ function commonHandle(e, context) {
 
 //私聊以及群组@的处理
 function privateAndAtMsg(e, context) {
-    if (commonHandle(e, context)) return;
+    if (commonHandle(e, context)) {
+        e.stopPropagation();
+        return;
+    }
 
     if (hasImage(context.message)) {
         //搜图
@@ -282,7 +285,10 @@ function debugRrivateAndAtMsg(e, context) {
 
 //群组消息处理
 function groupMsg(e, context) {
-    if (commonHandle(e, context)) return;
+    if (commonHandle(e, context)) {
+        e.stopPropagation();
+        return;
+    }
 
     //进入或退出搜图模式
     const {
@@ -365,6 +371,7 @@ function groupMsg(e, context) {
  */
 async function searchImg(context, customDB = -1) {
     const args = parseArgs(context.message);
+    const hasWord = word => context.message.indexOf(word) !== -1;
 
     //OCR
     if (args.ocr) {
@@ -373,7 +380,7 @@ async function searchImg(context, customDB = -1) {
     }
 
     //明日方舟
-    if (args.akhr) {
+    if (hasWord('akhr') || hasWord('公招')) {
         doAkhr(context);
         return;
     }
@@ -434,7 +441,7 @@ async function searchImg(context, customDB = -1) {
                 if (!useAscii2d) {
                     const saRet = await saucenao(img.url, db, args.debug);
                     if (!saRet.success) success = false;
-                    if ((saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || saRet.excess) useAscii2d = true;
+                    if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess)) useAscii2d = true;
                     if (!saRet.lowAcc && saRet.msg.indexOf('anidb.net') !== -1) useWhatAnime = true;
                     if (saRet.msg.length > 0) needCacheMsgs.push(saRet.msg);
 
@@ -522,9 +529,7 @@ function doAkhr(context) {
         };
 
         for (const img of imgs) {
-            ocr[setting.akhr.ocr](img.url, 'chs')
-                .then(handleWords)
-                .catch(handleError);
+            ocr[setting.akhr.ocr](img.url, 'chs').then(handleWords).catch(handleError);
         }
     } else {
         replyMsg(context, '该功能未开启');
