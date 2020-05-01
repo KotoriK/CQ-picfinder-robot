@@ -24,6 +24,7 @@ import {
 } from './modules/plugin/reminder';
 import broadcast from './modules/broadcast';
 import doBite from './modules/plugin/bite';
+import antiBiliMiniApp from './modules/plugin/antiBiliMiniApp';
 
 //常量
 const setting = config.picfinder;
@@ -143,11 +144,13 @@ bot.on('message.private', (e, context) => {
 //设置监听器
 if (setting.debug) {
     //私聊
-    bot.on('message.private', debugRrivateAndAtMsg);
+    bot.on('message.private', debugPrivateAndAtMsg);
     //讨论组@
     //bot.on('message.discuss.@me', debugRrivateAndAtMsg);
     //群组@
-    bot.on('message.group.@me', debugRrivateAndAtMsg);
+    bot.on('message.group.@me', debugPrivateAndAtMsg);
+    //群组
+    bot.on('message.group', debugGroupMsg);
 } else {
     //私聊
     bot.on('message.private', privateAndAtMsg);
@@ -232,6 +235,9 @@ function commonHandle(e, context) {
         if (rmdHandler(context)) return true;
     }
 
+    // 反哔哩哔哩小程序
+    antiBiliMiniApp(context, replyMsg);
+
     return false;
 }
 
@@ -274,13 +280,17 @@ function privateAndAtMsg(e, context) {
 }
 
 //调试模式
-function debugRrivateAndAtMsg(e, context) {
+function debugPrivateAndAtMsg(e, context) {
     if (context.user_id != setting.admin) {
         e.stopPropagation();
         return setting.replys.debug;
-    } else {
-        privateAndAtMsg(e, context);
     }
+    return privateAndAtMsg(e, context);
+}
+
+function debugGroupMsg(e, context) {
+    if (context.user_id != setting.admin) e.stopPropagation();
+    else return groupMsg(e, context);
 }
 
 //群组消息处理
@@ -439,7 +449,7 @@ async function searchImg(context, customDB = -1) {
 
                 //saucenao
                 if (!useAscii2d) {
-                    const saRet = await saucenao(img.url, db, args.debug);
+                    const saRet = await saucenao(img.url, db, args.debug || setting.debug);
                     if (!saRet.success) success = false;
                     if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess)) useAscii2d = true;
                     if (!saRet.lowAcc && saRet.msg.indexOf('anidb.net') !== -1) useWhatAnime = true;
@@ -473,7 +483,7 @@ async function searchImg(context, customDB = -1) {
 
                 //搜番
                 if (useWhatAnime) {
-                    const waRet = await whatanime(img.url, args.debug);
+                    const waRet = await whatanime(img.url, args.debug || setting.debug);
                     if (!waRet.success) success = false; //如果搜番有误也视作不成功
                     replyMsg(context, waRet.msg);
                     if (waRet.msg.length > 0) needCacheMsgs.push(waRet.msg);
@@ -574,22 +584,23 @@ function hasImage(msg) {
  * @param {boolean} at 是否at发送者
  */
 function replyMsg(context, msg, at = false) {
-    if (typeof msg != 'string' || msg.length == 0) return;
-    if (context.group_id) {
-        return bot('send_group_msg', {
-            group_id: context.group_id,
-            message: at ? CQ.at(context.user_id) + msg : msg,
-        });
-    } else if (context.discuss_id) {
-        return bot('send_discuss_msg', {
-            discuss_id: context.discuss_id,
-            message: at ? CQ.at(context.user_id) + msg : msg,
-        });
-    } else if (context.user_id) {
-        return bot('send_private_msg', {
-            user_id: context.user_id,
-            message: msg,
-        });
+    if (typeof msg !== 'string' || msg.length == 0) return;
+    switch (context.message_type) {
+        case 'private':
+            return bot('send_private_msg', {
+                user_id: context.user_id,
+                message: msg,
+            });
+        case 'group':
+            return bot('send_group_msg', {
+                group_id: context.group_id,
+                message: at ? CQ.at(context.user_id) + msg : msg,
+            });
+        case 'discuss':
+            return bot('send_discuss_msg', {
+                discuss_id: context.discuss_id,
+                message: at ? CQ.at(context.user_id) + msg : msg,
+            });
     }
 }
 
