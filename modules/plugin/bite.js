@@ -33,7 +33,7 @@ let cacheMyRole = []
 function doBite(context, replyFunc, bot) {
     let re = /^竹竹[^我他她它\s]+([我他她它])$/.exec(context)
     if (!re) return false; //检查是否符合RegEx
-    let anonymous=context.anonymous, biteWho = re[1],
+    let anonymous=context.anonymous, biteWho = re[1]
     if (anonymous) //检查是否是匿名消息
         {
             bot('set_group_anonymous_ban', {
