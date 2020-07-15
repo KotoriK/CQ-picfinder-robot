@@ -10,7 +10,7 @@ import {
 import whatanime from './modules/whatanime';
 import ascii2d from './modules/ascii2d';
 import CQ from './modules/CQcode';
-import PFSql from './modules/sql/index';
+import PFCache from './modules/cache';
 import Logger from './modules/Logger';
 import RandomSeed from 'random-seed';
 import sendSetu from './modules/plugin/setu';
@@ -35,14 +35,7 @@ const searchModeOffReg = new RegExp(setting.regs.searchModeOff);
 const signReg = new RegExp(setting.regs.sign);
 
 //初始化
-let sqlEnable = false;
-if (config.mysql.enable)
-    PFSql.sqlInitialize()
-        .then(() => (sqlEnable = true))
-        .catch(e => {
-            console.error(`${getTime()} [error] SQL`);
-            console.error(e);
-        });
+const pfcache = setting.cache.enable ? new PFCache() : null;
 if (setting.akhr.enable) Akhr.init().catch(console.error);
 if (setting.reminder.enable) rmdInit(replyMsg);
 
@@ -428,10 +421,8 @@ async function searchImg(context, customDB = -1) {
         else {
             //获取缓存
             let hasCache = false;
-            if (sqlEnable && !args.purge) {
-                const sql = new PFSql();
-                const cache = await sql.getCache(img.file, db);
-                sql.close();
+            if (setting.cache.enable && !args.purge) {
+                const cache = await pfcache.getCache(img.file, db);
 
                 //如果有缓存
                 if (cache) {
@@ -496,10 +487,8 @@ async function searchImg(context, customDB = -1) {
                 if (success) logger.doneSearch(context.user_id);
 
                 //将需要缓存的信息写入数据库
-                if (sqlEnable && success) {
-                    const sql = new PFSql();
-                    await sql.addCache(img.file, db, needCacheMsgs);
-                    sql.close();
+                if (setting.cache.enable && success) {
+                    await pfcache.addCache(img.file, db, needCacheMsgs);
                 }
             }
         }
