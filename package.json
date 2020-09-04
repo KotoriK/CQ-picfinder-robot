@@ -1,8 +1,9 @@
 {
-  "name": "cq-picfinder-robot",
-  "version": "2.13.3",
-  "description": "酷Q二次元搜图机器人",
+  "name": "cq-picsearcher-bot",
+  "version": "2.16.0",
+  "description": "二次元搜图机器人",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "test": "node index.js",
     "start": "pm2 start ecosystem.config.js",
@@ -16,46 +17,38 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Tsuk1ko/CQ-picfinder-robot.git"
+    "url": "git+https://github.com/Tsuk1ko/cq-picsearcher-bot.git"
   },
-  "keywords": [
-    "CoolQ",
-    "nijigen",
-    "anime",
-    "manka",
-    "comic",
-    "QQ",
-    "robot",
-    "pixiv"
-  ],
   "author": "JindaiKirin",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/Tsuk1ko/CQ-picfinder-robot/issues"
+    "url": "https://github.com/Tsuk1ko/cq-picsearcher-bot/issues"
   },
   "homepage": "https://moe.best/projects/qq-robot-picfinder.html",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.20.0",
     "canvas": "^2.6.1",
     "cheerio": "^1.0.0-rc.3",
-    "cq-websocket": "1.8.1",
-    "cron-parser": "^2.15.0",
-    "esm": "3.1.0",
+    "cq-websocket": "^2.1.1",
+    "cron-parser": "^2.16.3",
+    "esm": "3.2.25",
     "fs-extra": "^9.0.1",
     "https-proxy-agent": "^5.0.0",
+    "jimp": "^0.16.0",
     "koa": "^2.13.0",
     "koa-router": "^7.4.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "lodash.combinations": "^18.10.0",
     "minimist": "^1.2.5",
     "named-regexp-groups": "^1.0.5",
     "nhentai-api": "2.0.4",
-    "pm2": "^4.4.0",
+    "node-cache": "^5.1.2",
+    "pm2": "^4.4.1",
     "qs": "^6.9.4",
     "querystring": "^0.2.0",
     "random-seed": "^0.3.0",
     "socks-proxy-agent": "^5.0.0",
-    "sqlite": "^4.0.11",
+    "sqlite": "^4.0.14",
     "sqlite3": "^4.2.0",
     "tencentcloud-sdk-nodejs": "3.0.118"
   }
