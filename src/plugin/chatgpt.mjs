@@ -46,6 +46,7 @@ const getMatchAndConfig = text => {
         'maxTokens',
         'prependMessages',
         'additionParams',
+        'origin',
         'apiKey',
         'organization',
         'blackGroup',
@@ -77,7 +78,7 @@ const callCompletionAPI = (prompt, config) => {
     };
     if (debug) console.log('[chatgpt] params:', inspect(params, { depth: null }));
 
-    const { data } = await AxiosProxy.post('https://api.openai.com/v1/completions', params, {
+    const { data } = await AxiosProxy.post(`${config.origin}/v1/completions`, params, {
       headers,
       validateStatus: status => 200 <= status && status < 500,
     });
@@ -132,7 +133,7 @@ const callChatAPI = (prompt, config) => {
     };
     if (debug) console.log('[chatgpt] params:', inspect(params, { depth: null }));
 
-    const { data } = await AxiosProxy.post('https://api.openai.com/v1/chat/completions', params, {
+    const { data } = await AxiosProxy.post(`${config.origin}/v1/chat/completions`, params, {
       headers,
       validateStatus: status => 200 <= status && status < 500,
     });

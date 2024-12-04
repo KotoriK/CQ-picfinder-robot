@@ -344,6 +344,7 @@
       // https://platform.openai.com/docs/api-reference/completions/create
       // https://platform.openai.com/docs/api-reference/chat/create
       "additionParams": {},
+      "origin": "https://api.openai.com",
       // OpenAI APIKey
       "apiKey": "",
       // OpenAI 组织 ID，组织计费用，个人留空即可

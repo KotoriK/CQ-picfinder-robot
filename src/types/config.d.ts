@@ -97,6 +97,7 @@ declare interface Chatgpt {
     maxTokens: number;
     prependMessages: any[];
     additionParams: AdditionParam;
+    origin: string
     apiKey: string;
     organization: string;
     userDailyLimit: number;
